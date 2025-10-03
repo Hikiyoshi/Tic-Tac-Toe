@@ -24,6 +24,7 @@ public class LobbyManager : MonoBehaviour
         if (Instance != null)
         {
             Destroy(this);
+            return;
         }
 
         Instance = this;
@@ -31,17 +32,18 @@ public class LobbyManager : MonoBehaviour
 
     private async void Start()
     {
-        await UnityServices.InitializeAsync();
+        // await UnityServices.InitializeAsync();
 
-        AuthenticationService.Instance.SignedIn += () =>
-        {
-            Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
-        };
+        // AuthenticationService.Instance.SignedIn += () =>
+        // {
+        //     Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
+        // };
 
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        // await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
-        playerName = "hikiyoshi" + UnityEngine.Random.Range(1, 99);
-        Debug.Log("Player Name " + playerName);
+        // playerName = "hikiyoshi" + UnityEngine.Random.Range(1, 99);
+        // Debug.Log("Player Name " + playerName);
+        // Debug.Log(UnityServices.State);
     }
 
     private void Update()
@@ -83,19 +85,43 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    public async void CreateLobby()
+    public async void Authenticate(string playerName)
+    {
+        await UnityServices.InitializeAsync();
+
+        AuthenticationService.Instance.SignedIn += () =>
+        {
+            Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
+        };
+
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+        playerName = "hikiyoshi" + UnityEngine.Random.Range(1, 99);
+        Debug.Log("Player Name " + playerName);
+        Debug.Log(UnityServices.State);
+    }
+
+    public bool IsInitialize()
+    {
+        if (UnityServices.State == ServicesInitializationState.Initialized)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public async void CreateLobby(string lobbyName = "My Lobby", int maxPlayers = 4, string gameMode = "CaptureTheFlag")
     {
         try
         {
-            string lobbyName = "My Lobby";
-            int maxPlayers = 4;
             CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
             {
                 IsPrivate = false,
                 Player = GetPlayer(),
                 Data = new Dictionary<string, DataObject>
                 {
-                    { KEY_GAME_MODE, new DataObject(DataObject.VisibilityOptions.Public, "CaptureTheFlag") },
+                    { KEY_GAME_MODE, new DataObject(DataObject.VisibilityOptions.Public, gameMode) },
                     { "Map", new DataObject(DataObject.VisibilityOptions.Public, "Map_01") },
                 }
             };
